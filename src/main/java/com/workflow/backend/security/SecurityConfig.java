@@ -17,6 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     private final JwtFilter jwtFilter;
 
     public SecurityConfig(JwtFilter jwtFilter) {
@@ -24,46 +25,64 @@ public class SecurityConfig {
     }
 
     @Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        // 1. Activa la configuración de CORS que definiremos abajo
-        .cors(cors -> cors.configurationSource(corsConfigurationSource())) 
-        .csrf(csrf -> csrf.disable()) 
-        .sessionManagement(session -> session
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
-        .authorizeHttpRequests(auth -> auth
-            // 2. IMPORTANTE: Dejar pasar los OPTIONS sin preguntas
-            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-            
-            .requestMatchers(HttpMethod.POST, "/api/users").permitAll() 
-            .requestMatchers(HttpMethod.GET, "/api/users").authenticated()
-            .requestMatchers("/api/workflow-projects/**").authenticated()
-            .requestMatchers("/api/workflow-forms/**").authenticated()
-            .requestMatchers("/api/workflow-processes/**").authenticated()
-            .requestMatchers("/api/workflow-instances/**").authenticated()
-            .requestMatchers("/api/workflow-form-submissions").authenticated()
-            .requestMatchers("/api/auth/**").permitAll()
-            .anyRequest().authenticated()
-        )
-        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
-        
-    return http.build();
-}
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf.disable())
+            .sessionManagement(session -> session
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-// 3. Este Bean reemplaza lo que tenías en WebConfig
-@Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    // Importante: No uses "*" en allowedHeaders si usas allowCredentials(true)
-    // Es mejor listar los headers comunes
-    configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
-    configuration.setAllowCredentials(true);
-    
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
+
+                .requestMatchers(HttpMethod.GET, "/api/users").authenticated()
+                .requestMatchers("/api/workflow-projects/**").authenticated()
+                .requestMatchers("/api/workflow-forms/**").authenticated()
+                .requestMatchers("/api/workflow-processes/**").authenticated()
+                .requestMatchers("/api/workflow-instances/**").authenticated()
+                .requestMatchers("/api/workflow-form-submissions/**").authenticated()
+
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:4200",
+            "http://127.0.0.1:4200",
+            "https://frontend-workflow-seven.vercel.app"
+        ));
+
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "OPTIONS"
+        ));
+
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "X-Requested-With"
+        ));
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
+    }
 }
