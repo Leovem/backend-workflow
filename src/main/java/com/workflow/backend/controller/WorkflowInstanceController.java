@@ -32,13 +32,23 @@ public class WorkflowInstanceController {
     }
 
     @PostMapping("/start")
-    public ResponseEntity<StartWorkflowInstanceResponse> startInstance(
-        @RequestBody StartWorkflowInstanceRequest request
-    ) {
-        return ResponseEntity.ok(
-            workflowInstanceService.startInstance(request)
-        );
-    }
+public ResponseEntity<StartWorkflowInstanceResponse> startInstance(
+    @RequestBody StartWorkflowInstanceRequest request
+) {
+    System.out.println("=== [INSTANCE] Iniciando trámite ===");
+    System.out.println("processId: " + request.getProcessId());
+    System.out.println("processVersionId: " + request.getProcessVersionId());
+    System.out.println("title: " + request.getTitle());
+
+    StartWorkflowInstanceResponse response =
+        workflowInstanceService.startInstance(request);
+
+    System.out.println("=== [INSTANCE] Trámite creado correctamente ===");
+    System.out.println("instanceId: " + response.getId());
+    System.out.println("trackingCode: " + response.getTrackingCode());
+
+    return ResponseEntity.ok(response);
+}
 
     @GetMapping("/{instanceId}/tasks")
     public ResponseEntity<List<WorkflowTask>> findTasksByInstance(
