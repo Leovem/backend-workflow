@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/workflow-forms/**").authenticated()
                 .requestMatchers("/api/workflow-processes/**").authenticated()
                 .requestMatchers("/api/workflow-instances/**").authenticated()
+                .requestMatchers("/api/workflow-tasks/**").authenticated()
                 .requestMatchers("/api/workflow-form-submissions/**").authenticated()
 
                 .anyRequest().authenticated()
